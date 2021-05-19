@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "description": "Classify images right in your browser using TensorFlow.js and mobilenet.",
   "permissions": [
+    "*://*/*",
     "<all_urls>",
     "activeTab",
     "contextMenus",
