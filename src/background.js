@@ -5,8 +5,8 @@ import 'babel-polyfill';
 import * as tf from '@tensorflow/tfjs';
 
 //model.json 주소 
-const MODEL_URL =
-    "https://raw.githubusercontent.com/gml9812/GUI-detection-model/main/model.json";
+const MODEL_URL = "https://raw.githubusercontent.com/KORguy/centernet_js/main/model.json";
+    //"https://raw.githubusercontent.com/gml9812/GUI-detection-model/main/model.json";
 
 const IMAGE_SIZE_LOWBOUND = 640;
 
@@ -31,25 +31,46 @@ class Model {
   //stack에서 하나 뽑을 때 초기화함. 
   //이렇게 하면 하나씩만 처리 가능. 
   async chkStack() {
+    //이대로면 chkStack->chkstack 계속 스택 쌓여나감. 
+    
     if (this.stack.length != 0) {
       var tabImgNow = this.stack.pop();
       //이미 지나간 웹페이지 초기화 
       this.stack = [];
       await this.predictImg(tabImgNow[0],tabImgNow[1]);
     }
+    console.log(tf.memory());
     setTimeout(() => this.chkStack(), 1000);
   }
 
 
   predictImg(tabId,image) {
-    const logits = tf.tidy(() => {
+    /*
+    const tidyfunc = tf.tidy(() => {
       const img = tf.browser.fromPixels(image).toFloat();
       const batched = img.reshape([1,image.height,image.width,3]).toInt();
-     
-      //스크린샷을 모델에 넣는다. 
-      const output = this.model.executeAsync(batched);
-      output.then(prediction => {this.parseResult(prediction,image,tabId)});   
+    
+      //스크린샷을 모델에 넣는다.
+      .then(prediction => {
+        //this.parseResult(prediction,image,tabId);
+        for (let i=0; i<8; i++) {
+          prediction[i].dispose();
+        }
+        console.log(prediction);
+      });
+      return;
     });
+    */
+    tf.engine().startScope();
+    this.model.executeAsync(this.processImg(image))
+    .then(prediction => {this.parseResult(prediction,image,tabId)});
+    tf.engine().endScope();
+  }
+
+  processImg(image) {
+    const img = tf.browser.fromPixels(image).toFloat();
+    const batched = img.reshape([1,image.height,image.width,3]).toInt();
+    return batched;
   }
 
   //1 + 6 => 7,10,11 (main_post, searchbar, search_picto), 범위는 정확.(post는 광고까지 포함)
@@ -74,8 +95,6 @@ class Model {
           const maxY = boxes[0][i][2] * image.height;
           const maxX = boxes[0][i][3] * image.width;
           
-          //테스트
-          //elemList에 있는 놈들 위치에 있는 element 반환 
           elemList[j] = [scores[0][i][j],minX+(maxX-minX)/10,minY+(maxY-minY)/10];
         }
       }
@@ -83,11 +102,11 @@ class Model {
     chrome.tabs.executeScript(tabId,{
       code: 'var elemList = ' + JSON.stringify(elemList)
     }, function() {
-          chrome.tabs.executeScript(tabId,{code: 'for (let i=1;i<14;i++){console.log(document.elementFromPoint(elemList[i][1],elemList[i][2])); }'});
+          chrome.tabs.executeScript(tabId,{file: "src/make_skiplink.js"});
        });
 
     console.log("done");
-    
+    return;
   }
 }
 
