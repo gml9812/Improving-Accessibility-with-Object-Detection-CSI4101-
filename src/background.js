@@ -5,78 +5,48 @@ import 'babel-polyfill';
 import * as tf from '@tensorflow/tfjs';
 
 //model.json 주소 
-const MODEL_URL = "https://raw.githubusercontent.com/KORguy/centernet_js/main/model.json";
-    //"https://raw.githubusercontent.com/gml9812/GUI-detection-model/main/model.json";
+// const MODEL_URL = "https://raw.githubusercontent.com/KORguy/centernet_js/main/model.json";
+const MODEL_URL = "https://raw.githubusercontent.com/gml9812/GUI-detection-model/main/model.json";
 
 const IMAGE_SIZE_LOWBOUND = 640;
 
 class Model {
   constructor(){
-    this.stack = [];
     this.loadModel();
+    this.lock = false;
+    this.model = null;
   }
 
-  //깃허브에서 model.json 로드한다. 
-  async loadModel() {
+  loadModel = async () => {
+    console.log("loading model...");
     try {
       this.model = await tf.loadGraphModel(MODEL_URL);
       console.log("model loaded");
-      this.chkStack();
-    } catch {
-      console.log("unable to load model");
+    } catch (err) {
+      console.log("unable to load model: ", err.message);
     }
   }
 
-  //새로운 탭에 접속하면, stack에 저장함. 
-  //stack에서 하나 뽑을 때 초기화함. 
-  //이렇게 하면 하나씩만 처리 가능. 
-  async chkStack() {
-    //이대로면 chkStack->chkstack 계속 스택 쌓여나감. 
-    
-    if (this.stack.length != 0) {
-      var tabImgNow = this.stack.pop();
-      //이미 지나간 웹페이지 초기화 
-      this.stack = [];
-      await this.predictImg(tabImgNow[0],tabImgNow[1]);
-    }
-    console.log(tf.memory());
-    setTimeout(() => this.chkStack(), 1000);
-  }
-
-
-  predictImg(tabId,image) {
-    /*
-    const tidyfunc = tf.tidy(() => {
-      const img = tf.browser.fromPixels(image).toFloat();
-      const batched = img.reshape([1,image.height,image.width,3]).toInt();
-    
-      //스크린샷을 모델에 넣는다.
-      .then(prediction => {
-        //this.parseResult(prediction,image,tabId);
-        for (let i=0; i<8; i++) {
-          prediction[i].dispose();
-        }
-        console.log(prediction);
-      });
-      return;
-    });
-    */
-    tf.engine().startScope();
-    this.model.executeAsync(this.processImg(image))
-    .then(prediction => {this.parseResult(prediction,image,tabId)});
-    tf.engine().endScope();
-  }
-
-  processImg(image) {
+  processImg = (image) => {
     const img = tf.browser.fromPixels(image).toFloat();
-    const batched = img.reshape([1,image.height,image.width,3]).toInt();
+    const batched = img.reshape([1, image.height, image.width, 3]).toInt();
     return batched;
   }
 
-  //1 + 6 => 7,10,11 (main_post, searchbar, search_picto), 범위는 정확.(post는 광고까지 포함)
-  //1 + 3 => 7,9,10,11 (main_post, nav, searchbar, search_picto), 범위 극히 부정확, nav 정확/부정확 섞임 
-  //2 + 6 => 
-  //2 + 3 => 7,9,10,11 범위 정확 
+  async predictImg([tabId, image]) {
+    while (this.lock);
+    this.lock = true;
+    console.log(`processing tab ${tabId}...`)
+    tf.engine().startScope();
+    this.model.executeAsync(this.processImg(image))
+    .then(prediction => {
+      this.parseResult(prediction,image,tabId);
+      this.lock = false;
+      tf.engine().endScope();
+    });
+    console.log(tf.memory());
+  }
+
   parseResult(prediction,image,tabId) {
     //const boxes = prediction[1].arraySync();
     const boxes = prediction[2].arraySync();
@@ -102,16 +72,16 @@ class Model {
     chrome.tabs.executeScript(tabId,{
       code: 'var elemList = ' + JSON.stringify(elemList)
     }, function() {
-          chrome.tabs.executeScript(tabId,{file: "src/make_skiplink.js"});
-       });
-
-    console.log("done");
-    return;
+          chrome.tabs.executeScript(tabId,{file: "src/make_skiplink.js"}, () => {
+                  chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
+                    chrome.tabs.sendMessage(tabId, {action: "link created"}, function(response) {});  
+              });
+          });
+    });
   }
 }
 
 const model = new Model();
-
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status == 'complete' && tab.active) {
@@ -125,12 +95,12 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
           console.log("screen too small")
           return;
         }
-        model.stack.push([tabId,image]);
-        
+        while (!model.model);
+        model.predictImg([tabId, image]);
       }
     });
   }
-})
+});
 
 
 ////elemList 위치에 따른 type. 

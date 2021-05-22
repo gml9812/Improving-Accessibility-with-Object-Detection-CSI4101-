@@ -11,8 +11,6 @@ var sidebar = [0,0,0];
 
 for (let i=1;i<14;i++){
 	if (elemList[i][0] > 0.3) {
-
-		
 		if (0< i && i <= 2) {
 			if (elemList[i][0] > login[0]) {
 				login = elemList[i];
@@ -45,6 +43,7 @@ function makeLink(coordX,coordY,name) {
 	if (coordX === 0 && coordY === 0) return document.createElement('a');
 
 	var elem = document.elementFromPoint(coordX,coordY);
+	if (!elem) return
 	//만약 id 없다면 상위 element의 id 찾는다. 
 	while (elem.id === "") {
 		elem = elem.parentNode;
@@ -70,9 +69,6 @@ function makeLink(coordX,coordY,name) {
     letter-spacing: -1px;
     white-space: nowrap;`
 
-	console.log(coordX,coordY);
-	console.log(document.elementFromPoint(coordX,coordY));
-
 	skpLink.appendChild(linkText);
 	return skpLink;
 }
@@ -85,3 +81,5 @@ linkList.appendChild(makeLink(navbar[1],navbar[2],'메뉴'));
 linkList.appendChild(makeLink(searchbar[1],searchbar[2],'검색'));
 linkList.appendChild(makeLink(sidebar[1],sidebar[2],'사이드바'));
 document.body.prepend(linkList);
+return "HELLOOO";
+
