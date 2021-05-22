@@ -1,7 +1,11 @@
 //건너뛰기 링크 생성
 //정확도가 0.3 이상인 것 중 각 종류 내에서 가장 정확도 높은 걸로 선택. 
-//1,2,3,4,5숫자키 눌러 접근. (아직)
+
 //버튼 style 설정(아직 )
+//캐시 구현(아직)
+
+//숫자키 접근 강화 
+
 
 var login = [0,0,0];
 var main = [0,0,0];
@@ -52,6 +56,7 @@ function makeLink(coordX,coordY,name) {
 
 	var skpLink = document.createElement('a');
 	skpLink.href = `#${elem.id}`;
+	skpLink.id = `$${name}$`;
 	skpLink.style = `position: absolute;
     top: -30px;
     left: 0;
@@ -79,9 +84,50 @@ function makeLink(coordX,coordY,name) {
 
 var linkList = document.createElement('div');
 linkList.style = `position: relative`;
-linkList.appendChild(makeLink(login[1],login[2],'로그인'));
 linkList.appendChild(makeLink(main[1],main[2],'본문'));
 linkList.appendChild(makeLink(navbar[1],navbar[2],'메뉴'));
 linkList.appendChild(makeLink(searchbar[1],searchbar[2],'검색'));
+linkList.appendChild(makeLink(login[1],login[2],'로그인'));
 linkList.appendChild(makeLink(sidebar[1],sidebar[2],'사이드바'));
 document.body.prepend(linkList);
+
+
+var map = {};
+//문제: 일단 스크롤 내려온 후에는 스크롤 위에 있는 요소(ex:nav) 접근 불가
+onkeydown = function(e){
+	e = e || event;
+	map[e.keyCode] = e.type == 'keydown';
+
+	if (map[18] && map[49]) { //ALT + 1, 본문 점프
+		map[18] = false;
+		map[49] = false; 
+		document.getElementById("$본문$").click();
+
+	} else if (map[18] && map[50]) { //ALT + 2, 메뉴 점프 
+		map[18] = false;
+		map[50] = false;
+		document.getElementById("$메뉴$").click();
+
+	} else if (map[18] && map[51]) { //ALT + 3, 검색
+		map[18] = false;
+		map[51] = false;
+		document.getElementById("$검색$").click();
+
+	} else if (map[18] && map[81]) { //ALT + Q, 로그인 점프
+		map[18] = false;
+		map[81] = false; 
+		document.getElementById("$로그인$").click();
+
+	} else if (map[18] && map[87]) { //ALT + W, 사이드바 점프
+		map[18] = false;
+		map[87] = false;
+		document.getElementById("$사이드바$").click(); 
+	}
+	console.log(map);
+}
+
+onkeyup = function(e){
+	e = e || event;
+	map[e.keyCode] = e.type == 'keydown';
+	console.log(e.type);
+}

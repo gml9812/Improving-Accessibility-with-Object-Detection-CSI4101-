@@ -5,9 +5,9 @@ import 'babel-polyfill';
 import * as tf from '@tensorflow/tfjs';
 
 //model.json 주소 
-const MODEL_URL = "https://raw.githubusercontent.com/KORguy/centernet_js/main/model.json";
-    //"https://raw.githubusercontent.com/gml9812/GUI-detection-model/main/model.json";
-
+const MODEL_URL = //"https://raw.githubusercontent.com/KORguy/centernet_js/main/model.json";
+    "https://raw.githubusercontent.com/gml9812/GUI-detection-model/main/model.json";
+    
 const IMAGE_SIZE_LOWBOUND = 640;
 
 class Model {
@@ -19,8 +19,18 @@ class Model {
   //깃허브에서 model.json 로드한다. 
   async loadModel() {
     try {
+      tf.ENV.set('WEBGL_PACK', false);
       this.model = await tf.loadGraphModel(MODEL_URL);
+      console.log(this.model);
       console.log("model loaded");
+
+
+      //정확도 비슷, WEBGL_PACK 끄면 gpu 사용량 왠지 모르지만 줄어듬. 
+      console.log(tf.ENV);
+      console.log(tf.getBackend());
+
+
+
       this.chkStack();
     } catch {
       console.log("unable to load model");
@@ -32,39 +42,41 @@ class Model {
   //이렇게 하면 하나씩만 처리 가능. 
   async chkStack() {
     //이대로면 chkStack->chkstack 계속 스택 쌓여나감. 
-    
     if (this.stack.length != 0) {
       var tabImgNow = this.stack.pop();
       //이미 지나간 웹페이지 초기화 
       this.stack = [];
-      await this.predictImg(tabImgNow[0],tabImgNow[1]);
+
+      //캐시 체크
+      /////////////#########사이즈와 주소 모두 같아야 캐싱 처리됨.#######/////////
+      var cache = localStorage.getItem(tabImgNow[2]);
+      console.log(cache);
+      if (cache) {
+        //캐시 통해서 make_skiplink.js 사용한다. 
+        //이 부분 함수화하기 
+        chrome.tabs.executeScript(tabImgNow[0],{
+        code: 'var elemList = ' + JSON.stringify(cache)
+        }, function() {
+          chrome.tabs.executeScript(tabImgNow[0],{file: "src/make_skiplink.js"});
+       });
+      } else {
+        await this.predictImg(tabImgNow[0],tabImgNow[1],tabImgNow[2]);
+      }
     }
     console.log(tf.memory());
     setTimeout(() => this.chkStack(), 1000);
   }
 
 
-  predictImg(tabId,image) {
-    /*
-    const tidyfunc = tf.tidy(() => {
-      const img = tf.browser.fromPixels(image).toFloat();
-      const batched = img.reshape([1,image.height,image.width,3]).toInt();
-    
-      //스크린샷을 모델에 넣는다.
-      .then(prediction => {
-        //this.parseResult(prediction,image,tabId);
-        for (let i=0; i<8; i++) {
-          prediction[i].dispose();
-        }
-        console.log(prediction);
-      });
-      return;
-    });
-    */
+  predictImg(tabId,image,url) {
+     
+
     tf.engine().startScope();
-    this.model.executeAsync(this.processImg(image))
-    .then(prediction => {this.parseResult(prediction,image,tabId)});
-    tf.engine().endScope();
+    this.model.executeAsync(this.processImg(image)).then(prediction => {
+      this.parseResult(prediction,image,tabId,url)
+      tf.engine().endScope();
+    });
+    return;
   }
 
   processImg(image) {
@@ -77,12 +89,13 @@ class Model {
   //1 + 3 => 7,9,10,11 (main_post, nav, searchbar, search_picto), 범위 극히 부정확, nav 정확/부정확 섞임 
   //2 + 6 => 
   //2 + 3 => 7,9,10,11 범위 정확 
-  parseResult(prediction,image,tabId) {
+  parseResult(prediction,image,tabId,url) {
     //const boxes = prediction[1].arraySync();
     const boxes = prediction[2].arraySync();
     const scores = prediction[3].arraySync();
     //const scores = prediction[6].arraySync();
 
+    
     //가장 정확도 높게 나온 요소 위치 뽑아 elemList에 저장.
     //let elemList = new Array(14);
     let elemList = [[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0]];
@@ -105,8 +118,13 @@ class Model {
           chrome.tabs.executeScript(tabId,{file: "src/make_skiplink.js"});
        });
 
+
+    //캐싱 
+    localStorage.setItem(url,elemList);
+
     console.log("done");
     return;
+
   }
 }
 
@@ -119,14 +137,15 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     var capturing = chrome.tabs.captureVisibleTab(null,null,function(dataUrl){
       var image = document.createElement('img');
       image.src = dataUrl;
+
+      console.log(tab);
           
       image.onload = function() {
         if (image.width < IMAGE_SIZE_LOWBOUND || image.height < IMAGE_SIZE_LOWBOUND) {
           console.log("screen too small")
           return;
         }
-        model.stack.push([tabId,image]);
-        
+        model.stack.push([tabId,image,tab.url]);
       }
     });
   }
