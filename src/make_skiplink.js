@@ -5,6 +5,7 @@
 //캐시 구현(아직)
 
 //숫자키 접근 강화 
+//해당 elem 없을 경우 처리. 
 
 
 var login = [0,0,0];
@@ -43,12 +44,49 @@ for (let i=1;i<14;i++){
 	}
 }
 
+function setStyle() {
+	var styles = `
+	.custom_skip_link {
+      position: absolute;
+      top: -30px;
+      left: 0;
+      width: 138px;
+      border: 1px solid #4ec53d;
+      background: #333;
+      text-align: center;
+    }
+    .custom_skip_link:focus {
+      top: 0;
+      text-decoration: none;
+      z-index: 1000;
+    }
+    .custom_skip_link > span {
+      display: inline-block;
+      padding: 2px 6px 0 0;
+      font-size: 13px;
+      line-height: 26px;
+      color: #fff;
+      letter-spacing: -1px;
+      white-space: nowrap;
+    }`
+
+    var styleTag = document.createElement('style');
+    if (styleTag.styleSheet)
+    	styleTag.styleSheet.cssText = styles;
+    else
+    	styleTag.appendChild(document.createTextNode(styles));
+    document.getElementsByTagName('head')[0].appendChild(styleTag);
+
+}
+
 //찾아낸 element의 id를 이용해 링크 만든다.
 function makeLink(coordX,coordY,name) {
-	//임시, 나중에 바꾼다. 
-	if (coordX === 0 && coordY === 0) return document.createElement('a');
 
 	var elem = document.elementFromPoint(coordX,coordY);
+
+	//임시, 나중에 바꾼다. 
+	if (elem === null || (coordX === 0 && coordY === 0)) return document.createElement('a');
+
 	//만약 id 없다면 상위 element의 id 찾는다. 
 	while (elem.id === "") {
 		elem = elem.parentNode;
@@ -57,23 +95,12 @@ function makeLink(coordX,coordY,name) {
 	var skpLink = document.createElement('a');
 	skpLink.href = `#${elem.id}`;
 	skpLink.id = `$${name}$`;
-	skpLink.style = `position: absolute;
-    top: -30px;
-    left: 0;
-    width: 138px;
-    border: 1px solid #4ec53d;
-    background: #333;
-    text-align: center;`
+	skpLink.className = "custom_skip_link";
+	skpLink.tabIndex = 0;
+
 
     var linkText = document.createElement('span');
     linkText.innerText = name;
-    linkText.style = `display: inline-block;
-    padding: 2px 6px 0 0;
-    font-size: 13px;
-    line-height: 26px;
-    color: #fff;
-    letter-spacing: -1px;
-    white-space: nowrap;`
 
 	console.log(coordX,coordY);
 	console.log(document.elementFromPoint(coordX,coordY));
@@ -82,6 +109,7 @@ function makeLink(coordX,coordY,name) {
 	return skpLink;
 }
 
+setStyle();
 var linkList = document.createElement('div');
 linkList.style = `position: relative`;
 linkList.appendChild(makeLink(main[1],main[2],'본문'));
