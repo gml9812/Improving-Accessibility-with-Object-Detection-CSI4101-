@@ -54,26 +54,47 @@ function makeLink(coordX,coordY,name) {
     elem = elem.parentNode;
   }
 
+  var styles = `
+    .custom_skip_link {
+      position: absolute;
+      top: -30px;
+      left: 0;
+      width: 138px;
+      border: 1px solid #4ec53d;
+      background: #333;
+      text-align: center;
+    }
+    .custom_skip_link:focus {
+      top: 0;
+      text-decoration: none;
+      z-index: 1000;
+    }
+    .custom_skip_link > span {
+      display: inline-block;
+      padding: 2px 6px 0 0;
+      font-size: 13px;
+      line-height: 26px;
+      color: #fff;
+      letter-spacing: -1px;
+      white-space: nowrap;
+    }
+  `
+  var styleTag=document.createElement('style');
+  if (styleTag.styleSheet)
+    styleTag.styleSheet.cssText=styles;
+  else 
+    styleTag.appendChild(document.createTextNode(styles));
+
+  document.getElementsByTagName('head')[0].appendChild(styleTag);
+
   var skpLink = document.createElement('a');
   skpLink.href = `#${elem.id}`;
   skpLink.id = `$${name}$`;
-  skpLink.style = `position: absolute;
-    top: -30px;
-    left: 0;
-    width: 138px;
-    border: 1px solid #4ec53d;
-    background: #333;
-    text-align: center;`
+  skpLink.className = "custom_skip_link";
+  skpLink.tabIndex = 0;
 
-    var linkText = document.createElement('span');
-    linkText.innerText = name;
-    linkText.style = `display: inline-block;
-    padding: 2px 6px 0 0;
-    font-size: 13px;
-    line-height: 26px;
-    color: #fff;
-    letter-spacing: -1px;
-    white-space: nowrap;`
+  var linkText = document.createElement('span');
+  linkText.innerText = name;
 
   console.log(coordX,coordY);
   console.log(document.elementFromPoint(coordX,coordY));
