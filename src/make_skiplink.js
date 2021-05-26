@@ -2,10 +2,12 @@
 //정확도가 0.3 이상인 것 중 각 종류 내에서 가장 정확도 높은 걸로 선택. 
 
 //버튼 style 설정(아직 )
-//캐시 구현(아직)
+
 
 //숫자키 접근 강화 
 //해당 elem 없을 경우 처리. 
+//이미 링크 있을 때는 새로이 만들지 않는다. 
+
 
 
 var login = [0,0,0];
@@ -15,7 +17,7 @@ var searchbar = [0,0,0];
 var sidebar = [0,0,0];
 
 for (let i=1;i<14;i++){
-	if (elemList[i][0] > 0.3) {
+	if (elemList[i][0] > 0.05) {
 
 		
 		if (0< i && i <= 2) {
@@ -75,7 +77,7 @@ function setStyle() {
     	styleTag.styleSheet.cssText = styles;
     else
     	styleTag.appendChild(document.createTextNode(styles));
-    document.getElementsByTagName('head')[0].appendChild(styleTag);
+    document.getElementsByTagName('head')[0].prepend(styleTag);
 
 }
 
@@ -109,15 +111,18 @@ function makeLink(coordX,coordY,name) {
 	return skpLink;
 }
 
-setStyle();
-var linkList = document.createElement('div');
-linkList.style = `position: relative`;
-linkList.appendChild(makeLink(main[1],main[2],'본문'));
-linkList.appendChild(makeLink(navbar[1],navbar[2],'메뉴'));
-linkList.appendChild(makeLink(searchbar[1],searchbar[2],'검색'));
-linkList.appendChild(makeLink(login[1],login[2],'로그인'));
-linkList.appendChild(makeLink(sidebar[1],sidebar[2],'사이드바'));
-document.body.prepend(linkList);
+if (document.getElementById(`$skip_Link$`) === null ) {
+	setStyle();
+	var linkList = document.createElement('div');
+	linkList.style = `position: relative`;
+	linkList.id = `$skip_Link$`;
+	linkList.appendChild(makeLink(main[1],main[2],'본문'));
+	linkList.appendChild(makeLink(navbar[1],navbar[2],'메뉴'));
+	linkList.appendChild(makeLink(searchbar[1],searchbar[2],'검색'));
+	linkList.appendChild(makeLink(login[1],login[2],'로그인'));
+	linkList.appendChild(makeLink(sidebar[1],sidebar[2],'사이드바'));
+	document.body.prepend(linkList);
+}
 
 
 var map = {};

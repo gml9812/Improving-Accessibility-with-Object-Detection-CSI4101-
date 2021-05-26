@@ -5,9 +5,8 @@ import 'babel-polyfill';
 import * as tf from '@tensorflow/tfjs';
 
 //model.json 주소 
-const MODEL_URL = //"https://raw.githubusercontent.com/KORguy/centernet_js/main/model.json";
-    //"https://raw.githubusercontent.com/gml9812/GUI-detection-model/main/model.json";
-    "https://raw.githubusercontent.com/gml9812/GUI_detection_model_YOLOv5/main/model.json";
+const MODEL_URL = //"https://raw.githubusercontent.com/gml9812/GUI-detection-model/main/model.json";
+    "https://raw.githubusercontent.com/gml9812/GUI-detection-model/main/mobilenet/model.json";
     
 const IMAGE_SIZE_LOWBOUND = 640;
 
@@ -66,13 +65,7 @@ class Model {
 
     tf.engine().startScope();
     this.model.executeAsync(this.processImg(image)).then(prediction => {
-      ////////////
-      console.log(this.processImg(image).print());
-      for (let i=0; i<prediction.length; i++) {
-        //console.log(prediction[i].print());
-        console.log(prediction[i]);
-      }
-      //////////////////
+      console.log(prediction);
       this.parseResult(prediction,image,tabId,url)
       this.lock = false;
       tf.engine().endScope();
@@ -81,15 +74,8 @@ class Model {
 
   processImg(image) {
     //faster-rcnn
-    //const img = tf.browser.fromPixels(image).toFloat();
-    //const batched = img.reshape([1,image.height,image.width,3]).toInt();
-
-    //yolov5
-    image.height = 416;
-    image.width = 416;
     const img = tf.browser.fromPixels(image).toFloat();
-    const batched = img.reshape([1,3,image.height,image.width]);
-
+    const batched = img.reshape([1,image.height,image.width,3]).toInt();
     return batched;
   }
 
@@ -98,6 +84,8 @@ class Model {
   //2 + 6 => 
   //2 + 3 => 7,9,10,11 범위 정확 
   parseResult(prediction,image,tabId,url) {
+    //faster-rcnn
+    /*
     //const boxes = prediction[1].arraySync();
     const boxes = prediction[2].arraySync();
     const scores = prediction[3].arraySync();
@@ -133,7 +121,44 @@ class Model {
 
     console.log("done");
     return;
+    */
 
+    //mobilenet
+    const boxes = prediction[2].arraySync();
+    const scores = prediction[3].arraySync();
+    
+    console.log(boxes);
+    console.log(scores);
+
+    let elemList = [[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0]];
+    for (let i=0; i<100; i++) {
+      for (let j=0; j<14; j++) {
+        if (scores[0][i][j] > elemList[j][0]) {
+
+          const minY = boxes[0][i][0] * image.height;
+          const minX = boxes[0][i][1] * image.width;
+          const maxY = boxes[0][i][2] * image.height;
+          const maxX = boxes[0][i][3] * image.width;
+          
+          elemList[j] = [scores[0][i][j],minX+(maxX-minX)/10,minY+(maxY-minY)/10];
+        }
+
+      }
+    }
+
+    chrome.tabs.executeScript(tabId,{
+      code: 'var elemList = ' + JSON.stringify(elemList)
+    }, function() {
+          chrome.tabs.executeScript(tabId,{file: "src/make_skiplink.js"});
+       });
+
+
+    //캐싱
+    //url에서 마지막에 #달린 부분은 제거하고 저장. 
+    localStorage.setItem(this.urlParse(url),JSON.stringify(elemList));
+
+    console.log("done");
+    return;
   }
 }
 
