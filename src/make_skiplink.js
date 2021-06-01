@@ -7,52 +7,69 @@
 //숫자키 접근 강화 
 
 
-var login = [0,0,0];
-var main = [0,0,0];
-var navbar = [0,0,0];
-var searchbar = [0,0,0];
-var sidebar = [0,0,0];
-
-for (let i=1;i<14;i++){
-  if (elemList[i][0] > 0.3) {
-
-    
+var login = [0,0,0,0,0];
+var main = [0,0,0,0,0];
+var navbar = [0,0,0,0,0];
+var searchbar = [0,0,0,0,0];
+var sidebar = [0,0,0,0,0];
+elemList = JSON.parse("[" + elemList + "]");
+var count = 0;
+for (let i = 1; i < 14; i++){
+  if (elemList[i * 5] > 0.3) {
     if (0< i && i <= 2) {
-      if (elemList[i][0] > login[0]) {
-        login = elemList[i];
+      if (elemList[i * 5] > login[0]) {
+        login[0] = elemList[i*5];
+        login[1] = elemList[i*5+1];
+        login[2] = elemList[i*5+2];
+        login[3] = elemList[i*5+3];
+        login[4] = elemList[i*5+4];
       }
     }
     else if (2 < i && i <= 8) {
-      if (elemList[i][0] > main[0]) {
-        main = elemList[i];
+      if (elemList[i * 5] > main[0]) {
+        main[0] = elemList[i*5];
+        main[1] = elemList[i*5+1];
+        main[2] = elemList[i*5+2];
+        main[3] = elemList[i*5+3];
+        main[4] = elemList[i*5+4];
       }
     }
     else if (i === 9) {
-      navbar = elemList[i];
+        navbar[0] = elemList[i*5];
+        navbar[1] = elemList[i*5+1];
+        navbar[2] = elemList[i*5+2];
+        navbar[3] = elemList[i*5+3];
+        navbar[4] = elemList[i*5+4];
     }
     else if (9 < i && i <= 11) {
-      if (elemList[i][0] > searchbar[0]) {
-        searchbar = elemList[i];
+      if (elemList[i * 5] > searchbar[0]) {
+        searchbar[0] = elemList[i*5];
+        navbar[1] = elemList[i*5+1];
+        navbar[2] = elemList[i*5+2];
+        navbar[3] = elemList[i*5+3];
+        navbar[4] = elemList[i*5+4];
       }
     }
     else if (11 < i && i <= 13) {
-      if (elemList[i][0] > sidebar[0]) {
-        sidebar = elemList[i];
+      if (elemList[i * 5] > sidebar[0]) {
+        sidebar[0] = elemList[i*5];
+        sidebar[1] = elemList[i*5+1];
+        sidebar[2] = elemList[i*5+2];
+        sidebar[3] = elemList[i*5+3];
+        sidebar[4] = elemList[i*5+4];
       }
     }
   }
 }
-
 //찾아낸 element의 id를 이용해 링크 만든다.
-function makeLink(coordX,coordY,name) {
+function makeLink(L,name) {
   //임시, 나중에 바꾼다. 
-  if (coordX === 0 && coordY === 0) return document.createElement('a');
-
-  var elem = document.elementFromPoint(coordX,coordY);
-  //만약 id 없다면 상위 element의 id 찾는다. 
-  while (elem.id === "") {
-    elem = elem.parentNode;
-  }
+  // if (coordX === 0 && coordY === 0) return document.createElement('a');
+  // var elem = document.elementFromPoint(coordX,coordY);
+  // //만약 id 없다면 상위 element의 id 찾는다. 
+  // while (elem.id === "") {
+  //   elem = elem.parentNode;
+  // }
 
   var styles = `
     .custom_skip_link {
@@ -78,7 +95,7 @@ function makeLink(coordX,coordY,name) {
       letter-spacing: -1px;
       white-space: nowrap;
     }
-  `
+  // `
   var styleTag=document.createElement('style');
   if (styleTag.styleSheet)
     styleTag.styleSheet.cssText=styles;
@@ -88,28 +105,38 @@ function makeLink(coordX,coordY,name) {
   document.getElementsByTagName('head')[0].appendChild(styleTag);
 
   var skpLink = document.createElement('a');
-  skpLink.href = `#${elem.id}`;
+  if (name=='본문') l = document.querySelector("#the-jupyter-notebook > h1");
+  if (name=="검색") l = document.querySelector("body > div.wy-grid-for-nav > nav > div > div.wy-side-nav-search > div:nth-child(3)");
+  if (name=="사이드바") l = document.querySelector("body > div.wy-grid-for-nav > nav > div");
+  l.id = `id${count}`;
+  count+=1;
+  skpLink.href = `#${l.id}`;
   skpLink.id = `$${name}$`;
   skpLink.className = "custom_skip_link";
   skpLink.tabIndex = 0;
-
   var linkText = document.createElement('span');
   linkText.innerText = name;
-
-  console.log(coordX,coordY);
-  console.log(document.elementFromPoint(coordX,coordY));
-
   skpLink.appendChild(linkText);
   return skpLink;
+  // skpLink.href = `#${elem.id}`;
+  // skpLink.id = `$${name}$`;
+  // skpLink.className = "custom_skip_link";
+  // skpLink.tabIndex = 1;
+
+  // var linkText = document.createElement('span');
+  // linkText.innerText = name;
+
+  // skpLink.appendChild(linkText);
+  // return skpLink;
 }
 
 var linkList = document.createElement('div');
 linkList.style = `position: relative`;
-linkList.appendChild(makeLink(main[1],main[2],'본문'));
-linkList.appendChild(makeLink(navbar[1],navbar[2],'메뉴'));
-linkList.appendChild(makeLink(searchbar[1],searchbar[2],'검색'));
-linkList.appendChild(makeLink(login[1],login[2],'로그인'));
-linkList.appendChild(makeLink(sidebar[1],sidebar[2],'사이드바'));
+if (main[0] != 0) linkList.appendChild(makeLink(main,'본문'));
+if (navbar[0] != 0) linkList.appendChild(makeLink(navbar,'메뉴'));
+if (searchbar[0] != 0) linkList.appendChild(makeLink(searchbar,'검색'));
+if (login[0] != 0) linkList.appendChild(makeLink(login,'로그인'));
+if (sidebar[0] != 0) linkList.appendChild(makeLink(sidebar,'사이드바'));
 document.body.prepend(linkList);
 
 

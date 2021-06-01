@@ -9,7 +9,6 @@ const MODEL_URL = //"https://raw.githubusercontent.com/KORguy/centernet_js/main/
   "https://raw.githubusercontent.com/gml9812/GUI-detection-model/main/model.json";
 
 const IMAGE_SIZE_LOWBOUND = 640;
-
 class Model {
   constructor() {
     this.stack = [];
@@ -99,21 +98,23 @@ class Model {
     //가장 정확도 높게 나온 요소 위치 뽑아 elemList에 저장.
     //let elemList = new Array(14);
     let elemList = [
-      [0, 0, 0],
-      [0, 0, 0],
-      [0, 0, 0],
-      [0, 0, 0],
-      [0, 0, 0],
-      [0, 0, 0],
-      [0, 0, 0],
-      [0, 0, 0],
-      [0, 0, 0],
-      [0, 0, 0],
-      [0, 0, 0],
-      [0, 0, 0],
-      [0, 0, 0],
-      [0, 0, 0],
+      [0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0],
     ];
+    console.log(image.width);
+    console.log(image.height);
     for (let i = 0; i < 300; i++) {
       for (let j = 1; j < 14; j++) {
         if (scores[0][i][j] > elemList[j][0]) {
@@ -124,8 +125,10 @@ class Model {
 
           elemList[j] = [
             scores[0][i][j],
-            minX + (maxX - minX) / 10,
-            minY + (maxY - minY) / 10,
+            minX,
+            minY,
+            maxX,
+            maxY
           ];
         }
       }
