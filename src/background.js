@@ -1,12 +1,11 @@
 //로드전에 다른 웹사이트 접근하면 계산 취소. 
 
 //tf.js 라이브러리 
-import 'babel-polyfill';
-import * as tf from '@tensorflow/tfjs';
+import "babel-polyfill";
+import * as tf from "@tensorflow/tfjs";
 
 //model.json 주소 
-const MODEL_URL = //"https://raw.githubusercontent.com/gml9812/GUI-detection-model/main/model.json";
-    "https://raw.githubusercontent.com/gml9812/GUI-detection-model/main/mobilenet/model.json";
+const MODEL_URL = "https://raw.githubusercontent.com/gml9812/GUI-detection-model/main/mobilenet/model.json";
     
 const IMAGE_SIZE_LOWBOUND = 640;
 
@@ -84,44 +83,6 @@ class Model {
   //2 + 6 => 
   //2 + 3 => 7,9,10,11 범위 정확 
   parseResult(prediction,image,tabId,url) {
-    //faster-rcnn
-    /*
-    //const boxes = prediction[1].arraySync();
-    const boxes = prediction[2].arraySync();
-    const scores = prediction[3].arraySync();
-    //const scores = prediction[6].arraySync();
-
-    
-    //가장 정확도 높게 나온 요소 위치 뽑아 elemList에 저장.
-    //let elemList = new Array(14);
-    let elemList = [[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0]];
-    for (let i=0; i< 300; i++) { 
-      for (let j=1; j< 14; j++) {
-        if (scores[0][i][j] > elemList[j][0]) {
-
-          const minY = boxes[0][i][0] * image.height;
-          const minX = boxes[0][i][1] * image.width;
-          const maxY = boxes[0][i][2] * image.height;
-          const maxX = boxes[0][i][3] * image.width;
-          
-          elemList[j] = [scores[0][i][j],minX+(maxX-minX)/10,minY+(maxY-minY)/10];
-        }
-      }
-    }
-    chrome.tabs.executeScript(tabId,{
-      code: 'var elemList = ' + JSON.stringify(elemList)
-    }, function() {
-          chrome.tabs.executeScript(tabId,{file: "src/make_skiplink.js"});
-       });
-
-
-    //캐싱
-    //url에서 마지막에 #달린 부분은 제거하고 저장. 
-    localStorage.setItem(this.urlParse(url),JSON.stringify(elemList));
-
-    console.log("done");
-    return;
-    */
 
     //mobilenet
     const boxes = prediction[2].arraySync();
@@ -140,7 +101,11 @@ class Model {
           const maxY = boxes[0][i][2] * image.height;
           const maxX = boxes[0][i][3] * image.width;
           
-          elemList[j] = [scores[0][i][j],minX+(maxX-minX)/10,minY+(maxY-minY)/10];
+          elemList[j] = [
+          scores[0][i][j],
+          minX+(maxX-minX)/10,
+          minY+(maxY-minY)/10
+          ];
         }
 
       }

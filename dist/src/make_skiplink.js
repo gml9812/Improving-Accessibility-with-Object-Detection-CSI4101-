@@ -17,9 +17,7 @@ var searchbar = [0,0,0];
 var sidebar = [0,0,0];
 
 for (let i=1;i<14;i++){
-	if (elemList[i][0] > 0.05) {
-
-		
+	if (elemList[i][0] > 0.07) {
 		if (0< i && i <= 2) {
 			if (elemList[i][0] > login[0]) {
 				login = elemList[i];
