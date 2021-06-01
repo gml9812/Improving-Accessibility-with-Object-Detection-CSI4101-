@@ -17,7 +17,9 @@ var searchbar = [0,0,0];
 var sidebar = [0,0,0];
 
 for (let i=1;i<14;i++){
-	if (elemList[i][0] > 0.07) {
+	//if (elemList[i][0] > 0.03) 
+
+		
 		if (0< i && i <= 2) {
 			if (elemList[i][0] > login[0]) {
 				login = elemList[i];
@@ -31,17 +33,24 @@ for (let i=1;i<14;i++){
 		else if (i === 9) {
 			navbar = elemList[i];
 		}
-		else if (9 < i && i <= 11) {
+		//searchbar는 무조건 바 우선 
+		else if (i === 10) {
 			if (elemList[i][0] > searchbar[0]) {
 				searchbar = elemList[i];
 			}
 		}
+		/*
+		else if (i === 11) {
+			if (elemList[i][0] > searchbar[0] + 0.1) {
+				searchbar = elemList[i];
+			}
+		}*/		
 		else if (11 < i && i <= 13) {
 			if (elemList[i][0] > sidebar[0]) {
 				sidebar = elemList[i];
 			}
 		}
-	}
+	
 }
 
 function setStyle() {
