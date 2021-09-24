@@ -1,51 +1,12 @@
-console.log("popup js loaded");
-
-var btn;
-
-const checkStorage = async () => {
-  chrome.storage.local.get(["state"], function (items) {
-    switch (items.state) {
-      case "loading":
-        btn.style.backgroundColor = "white";
-        btn.innerText = "Loading...";
-        btn.disabled = true;
-        break;
-      case "loaded":
-        btn.style.backgroundColor = "red";
-        btn.innerText = "STOP";
-        btn.disabled = false;
-        break;
-      case "stopped":
-        btn.style.backgroundColor = "green";
-        btn.innerText = "START";
-        btn.disabled = false;
-        break;
-    }
-  });
-};
-
 window.onload = () => {
-  btn = document.getElementById("model_button");
+  let btn = document.getElementById("boundary_button");
 
-  checkStorage();
-
+  //버튼을 누르면 감지한 GUI 요소들의 Boundary가 표시되고, skip link가 드러난다. 
   btn.addEventListener("click", () => {
-    var port = chrome.extension.connect({
-      name: "button",
+    chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+      chrome.tabs.sendMessage(tabs[0].id, {greeting: "hello"}, function(response) {
+        console.log(response);
+      })
     });
-    chrome.storage.local.get(["state"], function (items) {
-      switch (items.state) {
-        case "loaded":
-          port.postMessage("stop");
-          break;
-        case "stopped":
-          port.postMessage("start");
-          break;
-      }
-    });
-  });
+  })
 };
-
-chrome.storage.onChanged.addListener(function (changes, namespace) {
-  checkStorage();
-});

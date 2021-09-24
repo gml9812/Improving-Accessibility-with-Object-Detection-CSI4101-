@@ -1,13 +1,6 @@
-//건너뛰기 링크 생성
-//정확도가 0.3 이상인 것 중 각 종류 내에서 가장 정확도 높은 걸로 선택. 
-
-//버튼 style 설정(아직 )
-
-
-//숫자키 접근 강화 
-//해당 elem 없을 경우 처리. 
-//이미 링크 있을 때는 새로이 만들지 않는다. 
-
+//만약 만들어진 링크 없으면 그냥 빈 링크만 존재하는 것 고치기. => done
+//beep음 async await 이용해 전부 끝나고 난 뒤 나게 하기.
+//버튼 누르면 경계선 보이게 하기.
 
 
 var login = [0,0,0];
@@ -16,10 +9,7 @@ var navbar = [0,0,0];
 var searchbar = [0,0,0];
 var sidebar = [0,0,0];
 
-for (let i=1;i<14;i++){
-	//if (elemList[i][0] > 0.03) 
-
-		
+for (let i=1;i<14;i++){ 
 		if (0< i && i <= 2) {
 			if (elemList[i][0] > login[0]) {
 				login = elemList[i];
@@ -38,36 +28,24 @@ for (let i=1;i<14;i++){
 			if (elemList[i][0] > searchbar[0]) {
 				searchbar = elemList[i];
 			}
-		}
-		/*
-		else if (i === 11) {
-			if (elemList[i][0] > searchbar[0] + 0.1) {
-				searchbar = elemList[i];
-			}
-		}*/		
+		}		
 		else if (11 < i && i <= 13) {
 			if (elemList[i][0] > sidebar[0]) {
 				sidebar = elemList[i];
 			}
 		}
-	
 }
 
+//skip link의 style 설정
 function setStyle() {
 	var styles = `
 	.custom_skip_link {
-      position: absolute;
       top: -30px;
       left: 0;
       width: 138px;
       border: 1px solid #4ec53d;
       background: #333;
       text-align: center;
-    }
-    .custom_skip_link:focus {
-      top: 0;
-      text-decoration: none;
-      z-index: 1000;
     }
     .custom_skip_link > span {
       display: inline-block;
@@ -85,16 +63,18 @@ function setStyle() {
     else
     	styleTag.appendChild(document.createTextNode(styles));
     document.getElementsByTagName('head')[0].prepend(styleTag);
-
 }
 
 //찾아낸 element의 id를 이용해 링크 만든다.
 function makeLink(coordX,coordY,name) {
-
 	var elem = document.elementFromPoint(coordX,coordY);
 
-	//임시, 나중에 바꾼다. 
-	if (elem === null || (coordX === 0 && coordY === 0)) return document.createElement('a');
+	if (elem === null || (coordX === 0 && coordY === 0)) {
+		let emptyLink = document.createElement('a');
+		let linkText = document.createElement('span');
+		linkText.innerText = `현재 페이지에 ${name}은 없습니다`
+		return emptyLink;
+	}
 
 	//만약 id 없다면 상위 element의 id 찾는다. 
 	while (elem.id === "") {
@@ -106,7 +86,6 @@ function makeLink(coordX,coordY,name) {
 	skpLink.id = `$${name}$`;
 	skpLink.className = "custom_skip_link";
 	skpLink.tabIndex = 0;
-
 
     var linkText = document.createElement('span');
     linkText.innerText = name;
@@ -121,7 +100,8 @@ function makeLink(coordX,coordY,name) {
 if (document.getElementById(`$skip_Link$`) === null ) {
 	setStyle();
 	var linkList = document.createElement('div');
-	linkList.style = `position: relative`;
+	//@@@@@@@@@test.z-index: 99999'
+	linkList.style = `position: absolute; top: -30px`;
 	linkList.id = `$skip_Link$`;
 	linkList.appendChild(makeLink(main[1],main[2],'본문'));
 	linkList.appendChild(makeLink(navbar[1],navbar[2],'메뉴'));
@@ -129,7 +109,33 @@ if (document.getElementById(`$skip_Link$`) === null ) {
 	linkList.appendChild(makeLink(login[1],login[2],'로그인'));
 	linkList.appendChild(makeLink(sidebar[1],sidebar[2],'사이드바'));
 	document.body.prepend(linkList);
+	//다 만들어진 후, 링크 시작점에 포커스 옮긴다. ==>지금 안됨
+	document.getElementById(`$skip_Link$`).focus();
 }
+
+/*
+////test@@@@@@@@@@@@@
+let temp = document.createElement('a');
+var text = document.createElement('span');
+text.innerText = 'testtesttest';
+temp.appendChild(text);
+document.body.prepend(temp);
+////test@@@@@@@@@@@@@@@@@@@@
+
+temp.addEventListener('click', () => {
+	//건너뛰기 링크들 보이게 한다. 
+	document.getElementById('$skip_Link$').style.top = '0px';
+    document.getElementById('$skip_Link$').style.zIndex = 99999;
+    
+    //각각 링크 위치에 빨간색 boundary 그린다. 
+	let list = document.getElementsByClassName('custom_skip_link');
+	Array.from(list).forEach((link) => {
+		let id = link.href.split('#')[1]
+		document.getElementById(id).style.border = "5px solid red"
+	})
+});
+*/
+
 
 
 var map = {};
@@ -171,3 +177,5 @@ onkeyup = function(e){
 	map[e.keyCode] = e.type == 'keydown';
 	console.log(e.type);
 }
+
+
