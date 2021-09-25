@@ -1,6 +1,6 @@
-//만약 만들어진 링크 없으면 그냥 빈 링크만 존재하는 것 고치기. => done
+//만약 만들어진 링크 없으면 그냥 빈 링크만 존재하는 것 고치기. => nvda로 할 때 소리가 나게 하자. 
 //beep음 async await 이용해 전부 끝나고 난 뒤 나게 하기.
-//버튼 누르면 경계선 보이게 하기.
+//show boundaries 원래 회색이다가, 로드 끝나고 popup에 메시지 보내서 색깔 바꾸게 하기. 
 
 
 var login = [0,0,0];
@@ -40,6 +40,7 @@ for (let i=1;i<14;i++){
 function setStyle() {
 	var styles = `
 	.custom_skip_link {
+	  position: absolute;
       top: -30px;
       left: 0;
       width: 138px;
@@ -47,6 +48,9 @@ function setStyle() {
       background: #333;
       text-align: center;
     }
+	.custom_skip_link:focus {
+		top: 0px;
+	}
     .custom_skip_link > span {
       display: inline-block;
       padding: 2px 6px 0 0;
@@ -73,6 +77,7 @@ function makeLink(coordX,coordY,name) {
 		let emptyLink = document.createElement('a');
 		let linkText = document.createElement('span');
 		linkText.innerText = `현재 페이지에 ${name}은 없습니다`
+		emptyLink.appendChild(linkText)
 		return emptyLink;
 	}
 
@@ -101,7 +106,7 @@ if (document.getElementById(`$skip_Link$`) === null ) {
 	setStyle();
 	var linkList = document.createElement('div');
 	//@@@@@@@@@test.z-index: 99999'
-	linkList.style = `position: absolute; top: -30px`;
+	linkList.style = `position: relative;`;
 	linkList.id = `$skip_Link$`;
 	linkList.appendChild(makeLink(main[1],main[2],'본문'));
 	linkList.appendChild(makeLink(navbar[1],navbar[2],'메뉴'));
@@ -112,30 +117,6 @@ if (document.getElementById(`$skip_Link$`) === null ) {
 	//다 만들어진 후, 링크 시작점에 포커스 옮긴다. ==>지금 안됨
 	document.getElementById(`$skip_Link$`).focus();
 }
-
-/*
-////test@@@@@@@@@@@@@
-let temp = document.createElement('a');
-var text = document.createElement('span');
-text.innerText = 'testtesttest';
-temp.appendChild(text);
-document.body.prepend(temp);
-////test@@@@@@@@@@@@@@@@@@@@
-
-temp.addEventListener('click', () => {
-	//건너뛰기 링크들 보이게 한다. 
-	document.getElementById('$skip_Link$').style.top = '0px';
-    document.getElementById('$skip_Link$').style.zIndex = 99999;
-    
-    //각각 링크 위치에 빨간색 boundary 그린다. 
-	let list = document.getElementsByClassName('custom_skip_link');
-	Array.from(list).forEach((link) => {
-		let id = link.href.split('#')[1]
-		document.getElementById(id).style.border = "5px solid red"
-	})
-});
-*/
-
 
 
 var map = {};
