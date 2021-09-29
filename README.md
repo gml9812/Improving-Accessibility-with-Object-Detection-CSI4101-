@@ -42,8 +42,7 @@ JS로 브라우저에서 머신 러닝 모델 사용을 가능하게 해 주는 
 ![image](https://user-images.githubusercontent.com/28294925/135210765-cfbb6fec-f068-4e90-abc3-29504fef4194.png)
 ![image](https://user-images.githubusercontent.com/28294925/135211055-edc14087-c36f-4e83-9781-32f21cd0f535.png)
 
-### html & vanila js
-elementFromPoint 함수로 주어진 좌표에 존재하는 DOM element를 찾고,  
+### html & vanila js 
 
 # 참고 자료
 - 소개 영상: https://www.youtube.com/watch?v=WQMst9QqhC0
